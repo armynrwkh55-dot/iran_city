@@ -1,290 +1,207 @@
-
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>ایران سیتی</title>
+<title>ایران سیتی | رانندگی آزاد</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#17202a;color:white;font-family:Tahoma,Arial;overflow:hidden;touch-action:none}
-#game{position:fixed;inset:0}
-#hud{position:fixed;inset:0;pointer-events:none}
-.panel{background:#101820dd;border:1px solid #ffffff35;border-radius:12px;padding:9px}
-#stats{position:absolute;top:8px;right:8px;font-size:12px;line-height:2}
-#title{position:absolute;top:8px;left:8px;font-weight:bold;color:#ffd34d}
-#menu{position:absolute;top:45px;left:8px;display:flex;flex-direction:column;gap:6px;pointer-events:auto}
-button{border:1px solid #ffffff44;border-radius:10px;background:#263b50;color:white;padding:10px;font-family:Tahoma;font-size:12px}
-button:active{background:#168f83}
-#controls{position:absolute;bottom:12px;left:12px;right:12px;display:flex;align-items:end;justify-content:space-between;pointer-events:auto}
-.pad{display:grid;grid-template-columns:48px 48px 48px;grid-template-rows:48px 48px;gap:4px;direction:ltr}
-.pad button{font-size:20px;padding:0;background:#182737dd}
-#up{grid-column:2;grid-row:1}
-#left{grid-column:1;grid-row:2}
-#down{grid-column:2;grid-row:2}
-#right{grid-column:3;grid-row:2}
-#drive{display:flex;gap:6px;align-items:end}
-#drive button{height:48px;min-width:52px;background:#183b37e8}
-#message{position:absolute;bottom:135px;left:50%;transform:translateX(-50%);background:#111d;border-radius:10px;padding:9px 14px;font-size:12px;white-space:nowrap}
-#modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:18px;z-index:5}
-#box{width:min(350px,100%);background:#172735;border:1px solid #ffffff40;border-radius:16px;padding:18px}
-#box h3{margin-top:0;color:#ffd34d}
-#options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#close{margin-top:12px;width:100%;background:#6b2e36}
-@media (orientation:portrait){
-#rotate{display:flex}
-}
-#rotate{display:none;position:fixed;inset:0;z-index:10;background:#111e;color:white;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:20px}
+body{margin:0;overflow:hidden;background:#8bb8d8;font-family:Tahoma,sans-serif;touch-action:none}
+canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;color:white}
+#title{position:absolute;top:12px;left:12px;background:#101827cc;padding:10px 14px;border-radius:12px;font-weight:bold}
+#speed{position:absolute;top:68px;left:12px;background:#101827cc;padding:10px;border-radius:10px}
+#hint{position:absolute;top:12px;right:12px;background:#101827bb;padding:9px;border-radius:10px;font-size:12px}
+#controls{position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:space-between;padding:0 22px;pointer-events:auto}
+.group{display:flex;gap:12px;align-items:end}
+button{width:66px;height:66px;border:2px solid #ffffffa0;border-radius:18px;background:#142033cc;color:white;font-size:26px;font-weight:bold;touch-action:none}
+button:active{background:#3284d8}
+#gas{height:82px;background:#167448dd}
+#brake{height:70px;background:#a52d36dd}
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:#101827;color:white;text-align:center;padding:25px;z-index:5}
+#loading small{display:block;margin-top:12px;color:#cbd5e1}
 </style>
 </head>
 <body>
-<div id="game"></div>
-<div id="rotate">📱 گوشی را افقی بچرخان تا وارد ایران سیتی شوی.</div>
+<div id="loading">در حال ساخت شهر سه‌بعدی...
+<small>برای بارگذاری، اتصال اینترنت لازم است.</small></div>
 <div id="hud">
-  <div id="stats" class="panel">💰 پول: <span id="money">10000</span><br>💎 الماس: <span id="diamonds">5</span><br>👔 شغل: <span id="job">شهروند</span></div>
-  <div id="title">🇮🇷 ایران سیتی</div>
-  <div id="menu">
-    <button onclick="openMenu('شخصیت')">🧍 کاراکتر</button>
-    <button onclick="openMenu('شغل')">👮 شغل‌ها</button>
-    <button onclick="openMenu('آرایشگاه')">💈 آرایشگاه</button>
-    <button onclick="openMenu('فروشگاه')">👕 فروشگاه</button>
-    <button onclick="openMenu('الماس')">💎 جعبه الماس</button>
-    <button onclick="openMenu('مالک')">👑 پنل مالک</button>
-  </div>
-  <div id="message" class="panel">برای سوار شدن به ماشین نزدیک شو.</div>
+  <div id="title">IRAN CITY</div>
+  <div id="speed">سرعت: <span id="km">0</span> km/h</div>
+  <div id="hint">رانندگی آزاد · نمای سوم‌شخص</div>
   <div id="controls">
-    <div class="pad">
-      <button id="up" data-move="up">▲</button>
-      <button id="left" data-move="left">◀</button>
-      <button id="down" data-move="down">▼</button>
-      <button id="right" data-move="right">▶</button>
+    <div class="group">
+      <button id="left">◀</button><button id="right">▶</button>
     </div>
-    <div id="drive">
-      <button id="enter">🚗 سوار</button>
-      <button id="gas" data-move="gas">گاز ▲</button>
-      <button id="brake" data-move="brake">ترمز ▼</button>
+    <div class="group">
+      <button id="brake">■</button><button id="gas">▲</button>
     </div>
-  </div>
-</div>
-<div id="modal">
-  <div id="box">
-    <h3 id="modalTitle">ایران سیتی</h3>
-    <div id="options"></div>
-    <button id="close" onclick="closeMenu()">بستن</button>
   </div>
 </div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-const root=document.getElementById('game');
+const loading=document.getElementById('loading');
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x8bd2f2);
-scene.fog=new THREE.Fog(0x8bd2f2,65,180);
-const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,0.1,400);
+scene.background=new THREE.Color(0x91c5e8);
+scene.fog=new THREE.Fog(0x91c5e8,100,420);
+
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,700);
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
 renderer.shadowMap.enabled=true;
-root.appendChild(renderer.domElement);
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.1;
+document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x52624c,2));
-const sun=new THREE.DirectionalLight(0xffffff,2.1);
-sun.position.set(30,50,20);
+scene.add(new THREE.HemisphereLight(0xffffff,0x65715a,2));
+const sun=new THREE.DirectionalLight(0xfff0d8,3);
+sun.position.set(-45,80,35);
 sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.left=-100;sun.shadow.camera.right=100;
+sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;
 scene.add(sun);
 
-function mat(color){return new THREE.MeshStandardMaterial({color,roughness:.85})}
-function cube(w,h,d,color,x,y,z){
- const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));
- m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;
+function mat(color,roughness=.7,metalness=0){
+ return new THREE.MeshStandardMaterial({color,roughness,metalness});
 }
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(220,220),mat(0x6cbd69));
-ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(1000,1000),mat(0x829875));
+ground.rotation.x=-Math.PI/2;ground.position.y=-.12;ground.receiveShadow=true;scene.add(ground);
 
-// خیابان‌ها و پیاده‌روها
-for(let z=-100;z<=100;z+=35){
- cube(12,.08,220,0x454a50,0,.05,z);
- for(let x=-100;x<=100;x+=8)cube(.15,.025,2,0xf2d16b,x,.11,z);
+// خیابان اصلی
+const road=new THREE.Mesh(new THREE.PlaneGeometry(18,1000),mat(0x30343a));
+road.rotation.x=-Math.PI/2;road.position.y=.01;road.receiveShadow=true;scene.add(road);
+for(let z=-490;z<500;z+=12){
+ const stripe=new THREE.Mesh(new THREE.BoxGeometry(.18,.025,5),mat(0xf4e8bd));
+ stripe.position.set(0,.04,z);scene.add(stripe);
 }
-for(let x=-100;x<=100;x+=35)cube(220,.08,12,0x454a50,x,.06,0);
-
-// ساختمان‌ها
-for(let x=-80;x<=80;x+=17){
- for(let z=-80;z<=80;z+=17){
-  if(Math.abs(x%35)<8||Math.abs(z%35)<8)continue;
-  const h=5+Math.random()*17;
-  const colors=[0xe6c9a5,0xd6dce5,0xf0b7a3,0xb8d5d2,0xe9d78b,0xb9b8dc];
-  cube(8,h,8,colors[Math.floor(Math.random()*colors.length)],x,h/2,z);
-  for(let wy=2;wy<h-1;wy+=3){
-   for(let wx=-2.5;wx<=2.5;wx+=5)
-    cube(.9,1,.08,0x7ec9e8,x+wx,wy,z+4.05);
+for(const x of [-9,9]){
+ const curb=new THREE.Mesh(new THREE.BoxGeometry(.5,.25,1000),mat(0xbab9af));
+ curb.position.set(x,.05,0);scene.add(curb);
+}
+const buildingMats=[0xc6b9a3,0xd8d1c4,0xb7c4c8,0xc8ad91,0x9eaeb1,0xe0d8c8].map(c=>mat(c));
+const windowMat=new THREE.MeshStandardMaterial({color:0x35586c,roughness:.25,metalness:.3});
+function box(w,h,d,material,x,y,z,cast=true){
+ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+ m.position.set(x,y,z);m.castShadow=cast;m.receiveShadow=true;scene.add(m);return m;
+}
+for(let z=-450;z<=450;z+=22){
+ for(const side of [-1,1]){
+  const w=8+Math.random()*9,h=9+Math.random()*28,d=12+Math.random()*8;
+  const x=side*(15+w/2+Math.random()*5);
+  box(w,h,d,buildingMats[Math.floor(Math.random()*buildingMats.length)],x,h/2,z+Math.random()*6);
+  // پنجره‌های جلوی ساختمان
+  for(let yy=2.5;yy<h-1;yy+=3.3){
+   for(let xx=-w/2+1.5;xx<w/2-1;xx+=2.6){
+    box(.95,1.35,.06,windowMat,x+xx,yy,z+d/2+.04,false);
+   }
   }
  }
 }
 
-// درخت‌ها
-for(let i=0;i<70;i++){
- const x=(Math.random()-.5)*180,z=(Math.random()-.5)*180;
- if(Math.abs(x%35)<8||Math.abs(z%35)<8)continue;
- cube(.45,2,.45,0x795439,x,1,z);
- const crown=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,7),mat(0x238447));
- crown.position.set(x,3,z);scene.add(crown);
+// ساخت ماشین با بدنه براق و جزئیات
+const car=new THREE.Group();scene.add(car);
+const paint=new THREE.MeshPhysicalMaterial({color:0x9c1824,metalness:.72,roughness:.24,clearcoat:1,clearcoatRoughness:.12});
+const dark=mat(0x151a20,.28,.25);
+const glass=new THREE.MeshPhysicalMaterial({color:0x142d3b,metalness:.45,roughness:.13,clearcoat:1});
+const chrome=mat(0xc7cbd0,.18,.85);
+function carPart(w,h,d,material,x,y,z){
+ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+ m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;car.add(m);return m;
 }
-
-// کاراکتر ساده با دست و پا
-const player=new THREE.Group();scene.add(player);
-const skin=mat(0xf0bd91);
-const shirt=mat(0x2469d8);
-const pants=mat(0x263344);
-const head=new THREE.Mesh(new THREE.SphereGeometry(.42,12,10),skin);
-head.position.y=2.25;player.add(head);
-const body=cube(.9,1,.45,0x2469d8,0,0,0);body.position.set(0,1.45,0);body.parent=player;scene.remove(body);
-const torso=new THREE.Mesh(new THREE.BoxGeometry(.9,1,.45),shirt);torso.position.y=1.45;player.add(torso);
-const arms=[],legs=[];
-for(const side of [-1,1]){
- const arm=new THREE.Mesh(new THREE.BoxGeometry(.22,.85,.24),skin);
- arm.position.set(side*.58,1.48,0);player.add(arm);arms.push(arm);
- const leg=new THREE.Mesh(new THREE.BoxGeometry(.3,.85,.32),pants);
- leg.position.set(side*.23,.48,0);player.add(leg);legs.push(leg);
+carPart(2.05,.55,4.5,paint,0,.8,0);
+carPart(1.9,.3,4.0,paint,0,1.12,-.03);
+carPart(1.7,.67,2.0,paint,0,1.52,-.25);
+carPart(1.58,.48,1.75,glass,0,1.57,-.25);
+carPart(1.95,.08,1.6,paint,0,1.92,-.25);
+carPart(1.7,.12,1.2,paint,0,1.17,1.2);
+carPart(1.7,.12,1.2,paint,0,1.17,-1.45);
+// جلوپنجره و چراغ‌ها
+carPart(.68,.23,.06,dark,0,.82,2.27);
+for(const x of [-.72,.72]){
+ const lamp= new THREE.MeshStandardMaterial({color:0xfff2cf,emissive:0xffd88a,emissiveIntensity:1.2});
+ carPart(.42,.17,.07,lamp,x,1.0,2.28);
+ carPart(.38,.15,.07,mat(0xb91c2b),x,1.0,-2.28);
+ carPart(.13,.25,.08,chrome,x,.82,2.31);
 }
-player.position.set(0,0,4);
-
-// ماشین‌های قابل سوار شدن
-const cars=[];
-function makeCar(x,z,color,name){
- const g=new THREE.Group();scene.add(g);
- const base=new THREE.Mesh(new THREE.BoxGeometry(2.1,.65,4),mat(color));base.position.y=.75;g.add(base);
- const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.65,.75,1.9),mat(0x9dd8ec));cabin.position.set(0,1.35,-.25);g.add(cabin);
- const wheels=[];
- for(const wx of [-1,1])for(const wz of [-1.25,1.25]){
-  const w=new THREE.Mesh(new THREE.CylinderGeometry(.36,.36,.22,12),mat(0x202020));
-  w.rotation.z=Math.PI/2;w.position.set(wx,.4,wz);g.add(w);wheels.push(w);
+// چرخ‌ها
+const wheels=[];
+for(const x of [-1.02,1.02]){
+ for(const z of [-1.42,1.42]){
+  const wheel=new THREE.Group();wheel.position.set(x,.53,z);car.add(wheel);
+  const tire=new THREE.Mesh(new THREE.CylinderGeometry(.43,.43,.25,32),dark);
+  tire.rotation.z=Math.PI/2;tire.castShadow=true;wheel.add(tire);
+  const rim=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,.27,12),chrome);
+  rim.rotation.z=Math.PI/2;wheel.add(rim);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.28,16),dark);
+  hub.rotation.z=Math.PI/2;wheel.add(hub);
+  wheels.push(wheel);
  }
- g.position.set(x,0,z);cars.push({g,wheels,name,speed:0,color});return cars[cars.length-1];
 }
-makeCar(5,4,0xffffff,'پژو ۲۰۶');
-makeCar(-8,-4,0xd92727,'پراید');
-makeCar(13,-12,0x252b36,'دنا');
-makeCar(-14,15,0xe4d33d,'سمند');
-let activeCar=null;
+// آینه‌ها
+for(const x of [-1.08,1.08]){
+ carPart(.22,.14,.24,paint,x,1.35,.48);
+}
+// سایه نرم مصنوعی
+const shadow=new THREE.Mesh(new THREE.CircleGeometry(1.5,32),new THREE.MeshBasicMaterial({color:0x111820,transparent:true,opacity:.28}));
+shadow.rotation.x=-Math.PI/2;shadow.scale.set(1,1.7,1);shadow.position.y=.035;car.add(shadow);
 
-const state={money:10000,diamonds:5,job:'شهروند',character:'شهروند',hair:0};
-const $=id=>document.getElementById(id);
-function updateStats(){
- $('money').textContent=state.money.toLocaleString('fa-IR');
- $('diamonds').textContent=state.diamonds.toLocaleString('fa-IR');
- $('job').textContent=state.job;
+car.position.set(0,0,0);
+let speed=0,steer=0;
+const keys={left:false,right:false,gas:false,brake:false};
+function bind(id,key){
+ const el=document.getElementById(id);
+ const on=e=>{e.preventDefault();keys[key]=true;};
+ const off=e=>{e.preventDefault();keys[key]=false;};
+ el.addEventListener('pointerdown',on);
+ el.addEventListener('pointerup',off);
+ el.addEventListener('pointercancel',off);
+ el.addEventListener('pointerleave',off);
 }
-function say(t){$('message').textContent=t}
-const held={};
-document.querySelectorAll('[data-move]').forEach(b=>{
- const k=b.dataset.move;
- b.addEventListener('pointerdown',e=>{e.preventDefault();held[k]=true;b.setPointerCapture(e.pointerId)});
- for(const ev of ['pointerup','pointercancel','lostpointercapture'])
-  b.addEventListener(ev,()=>held[k]=false);
+bind('left','left');bind('right','right');bind('gas','gas');bind('brake','brake');
+addEventListener('keydown',e=>{
+ if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;
+ if(e.key==='ArrowRight'||e.key==='d')keys.right=true;
+ if(e.key==='ArrowUp'||e.key==='w')keys.gas=true;
+ if(e.key==='ArrowDown'||e.key==='s'||e.key===' ')keys.brake=true;
 });
-$('enter').onclick=()=>{
- if(activeCar){activeCar=null;player.visible=true;say('پیاده شدی.');return}
- let nearest=null,dist=Infinity;
- for(const c of cars){const d=c.g.position.distanceTo(player.position);if(d<dist){dist=d;nearest=c}}
- if(nearest&&dist<7){activeCar=nearest;player.visible=false;say('سوار '+nearest.name+' شدی!');}
- else say('به یک ماشین نزدیک شو.');
-};
-
-function openMenu(name){
- $('modal').style.display='flex';$('modalTitle').textContent=name;
- const o=$('options');o.innerHTML='';
- const add=(label,fn)=>{
-  const b=document.createElement('button');b.textContent=label;
-  b.onclick=()=>{fn();updateStats()};o.appendChild(b);
- };
- if(name==='شخصیت'){
-  ['شهروند','پلیس','آشپز','مکانیک'].forEach(j=>add(j,()=>{
-   state.character=j;state.job=j;
-   const colors={'شهروند':0x2469d8,'پلیس':0x183c78,'آشپز':0xf0f0e8,'مکانیک':0xe5a12b};
-   torso.material=mat(colors[j]);say('کاراکتر انتخاب شد: '+j);
-  }));
- }else if(name==='شغل'){
-  ['شهروند','پلیس','آشپز','مکانیک'].forEach(j=>add('انتخاب '+j,()=>{
-   state.job=j;say('شغل تو: '+j);
-  }));
- }else if(name==='آرایشگاه'){
-  add('مدل موی ۱ | ۵۰۰ سکه',()=>{if(state.money>=500){state.money-=500;state.hair++;head.scale.set(1,1.12,1);say('مدل مو تغییر کرد.')}else say('پول کافی نداری.')});
-  add('رنگ مو | ۷۰۰ سکه',()=>{if(state.money>=700){state.money-=700;head.material=mat([0x30251d,0x9a5b2b,0xd7c58b,0x171717][state.hair%4]);state.hair++;say('رنگ مو عوض شد.')}else say('پول کافی نداری.')});
- }else if(name==='فروشگاه'){
-  add('لباس جدید | ۱۰۰۰ سکه',()=>{if(state.money>=1000){state.money-=1000;torso.material=mat(Math.random()*0xffffff);say('لباس جدید خریدی.')}else say('پول کافی نداری.')});
- }else if(name==='الماس'){
-  add('بازکردن جعبه | ۲ الماس',()=>{
-   if(state.diamonds<2){say('الماس کافی نداری.');return}
-   state.diamonds-=2;
-   const prize=500+Math.floor(Math.random()*2500);state.money+=prize;
-   say('جعبه باز شد! '+prize+' سکه گرفتی.');
-  });
-  add('جایزه روزانه +۱ الماس',()=>{state.diamonds++;say('یک الماس آزمایشی گرفتی.')});
- }else if(name==='مالک'){
-  add('دستور مالک',()=>{
-   const code=prompt('کد آزمایشی مالک را وارد کن:');
-   if(code!=='IRAN-OWNER-DEMO'){say('کد نادرست است.');return}
-   const cmd=prompt('دستور: پول 5000 یا الماس 10 یا تعمیر');
-   if(!cmd)return;
-   const p=cmd.split(' '),n=Math.max(0,Math.min(1000000,Number(p[1])||0));
-   if(p[0]==='پول'){state.money+=n;say('پول آزمایشی اضافه شد.')}
-   else if(p[0]==='الماس'){state.diamonds+=n;say('الماس آزمایشی اضافه شد.')}
-   else if(p[0]==='تعمیر'&&activeCar){activeCar.speed=0;say('ماشین تعمیر شد.')}
-   else say('دستور شناخته نشد.');
-  });
-  add('راهنمای مالک',()=>alert('دستورهای نمونه: پول 5000، الماس 10، تعمیر\\nاین پنل فقط آزمایشی و محلی است؛ امنیت واقعی به سرور نیاز دارد.'));
- }
-}
-function closeMenu(){$('modal').style.display='none'}
-window.openMenu=openMenu;window.closeMenu=closeMenu;
-
-let last=performance.now(),walkTime=0;
-function animate(now){
- requestAnimationFrame(animate);
- const dt=Math.min((now-last)/1000,.04);last=now;
- let moving=false;
- if(activeCar){
-  if(held.gas)activeCar.speed=Math.min(activeCar.speed+dt*5,12);
-  else if(held.brake)activeCar.speed=Math.max(activeCar.speed-dt*9,-4);
-  else activeCar.speed*=.985;
-  if(held.left)activeCar.g.rotation.y+=dt*1.5*(Math.abs(activeCar.speed)/5+.2);
-  if(held.right)activeCar.g.rotation.y-=dt*1.5*(Math.abs(activeCar.speed)/5+.2);
-  activeCar.g.translateZ(-activeCar.speed*dt);
-  activeCar.wheels.forEach(w=>w.rotation.x+=activeCar.speed*dt*1.5);
-  player.position.copy(activeCar.g.position);
-  player.position.y=0;
-  player.position.x+=Math.sin(activeCar.g.rotation.y)*-2.6;
-  player.position.z+=Math.cos(activeCar.g.rotation.y)*2.6;
- }else{
-  let dx=0,dz=0;
-  if(held.up)dz-=1;if(held.down)dz+=1;
-  if(held.left)dx-=1;if(held.right)dx+=1;
-  if(dx||dz){
-   moving=true;const len=Math.hypot(dx,dz);dx/=len;dz/=len;
-   player.position.x+=dx*dt*7;player.position.z+=dz*dt*7;
-   player.rotation.y=Math.atan2(dx,dz);
-  }
-  walkTime+=dt*(moving?12:2);
-  arms.forEach((a,i)=>a.rotation.x=moving?Math.sin(walkTime+i*Math.PI)*.65:0);
-  legs.forEach((a,i)=>a.rotation.x=moving?Math.sin(walkTime+i*Math.PI)*.7:0);
- }
- player.position.x=THREE.MathUtils.clamp(player.position.x,-100,100);
- player.position.z=THREE.MathUtils.clamp(player.position.z,-100,100);
- const target=activeCar?activeCar.g.position:player.position;
- const angle=activeCar?activeCar.g.rotation.y:player.rotation.y;
- const offset=new THREE.Vector3(Math.sin(angle)*8,6,Math.cos(angle)*8);
- const desired=target.clone().add(offset);
- camera.position.lerp(desired,.09);
- camera.lookAt(target.x,target.y+1.2,target.z);
- renderer.render(scene,camera);
-}
-requestAnimationFrame(animate);
-addEventListener('resize',()=>{
+addEventListener('keyup',e=>{
+ if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;
+ if(e.key==='ArrowRight'||e.key==='d')keys.right=false;
+ if(e.key==='ArrowUp'||e.key==='w')keys.gas=false;
+ if(e.key==='ArrowDown'||e.key==='s'||e.key===' ')keys.brake=false;
+});
+function resize(){
  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
  renderer.setSize(innerWidth,innerHeight);
-});
-updateStats();
+}
+addEventListener('resize',resize);
+function animate(){
+ requestAnimationFrame(animate);
+ if(keys.gas)speed=Math.min(speed+0.012,.85);
+ else speed*=.992;
+ if(keys.brake)speed*=.94;
+ const direction=(keys.left?1:0)-(keys.right?1:0);
+ steer+=(direction-steer)*.08;
+ car.rotation.y+=steer*speed*.035;
+ car.position.x+=Math.sin(car.rotation.y)*speed;
+ car.position.z+=Math.cos(car.rotation.y)*speed;
+ car.position.x=THREE.MathUtils.clamp(car.position.x,-7,7);
+ wheels.forEach(w=>w.rotation.x+=speed*.12);
+ const back=new THREE.Vector3(0,4.1,-8.5).applyQuaternion(car.quaternion);
+ const target=car.position.clone().add(back);
+ camera.position.lerp(target,.09);
+ const look=car.position.clone().add(new THREE.Vector3(0,1,4).applyQuaternion(car.quaternion));
+ camera.lookAt(look);
+ document.getElementById('km').textContent=Math.round(speed*110);
+ renderer.render(scene,camera);
+}
+loading.remove();
+animate();
 </script>
 </body>
 </html>
